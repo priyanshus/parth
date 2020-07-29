@@ -1,5 +1,5 @@
 from typing import List
-import argparse
+from tqdm import tqdm
 import os
 from pathlib import Path
 
@@ -10,24 +10,28 @@ from parth_core.constants import (SPECIAL_CHARACTERS_REPLACEMENTS_FOR_DIGITS, SP
 class SeclistGenerator:
     """Generate a list of password based on wordlist provided by user"""
 
-    def __init__(self, word_list):
+    def __init__(self, word_list, write_enable):
         self.__word_list: List[str] = word_list
-        self.__passwords = []
+        self.__secrets = []
         self.__word = ''
         self.__db = dict()
+        self.__write_enable = write_enable
 
     def generate(self) -> List:
         for word in self.__word_list:
-            self.__generate_one_word_passwords(word)
-        self.__generate_two_words_passwords()
-        self.__generate_three_words_passwords()
+            self.__generate_one_word_secrets(word)
+        self.__generate_two_words_secrets()
+        self.__generate_three_words_secrets()
 
-        print('Generated {} passwords'.format(len(self.__passwords)))
-        return self.__passwords
+        print('Generated {} secrets'.format(len(self.__secrets)))
+        if self.__write_enable == 'true':
+            self.__write_to_file(self.__secrets)
 
-    def __generate_one_word_passwords(self, word):
+        return self.__secrets
+
+    def __generate_one_word_secrets(self, word):
         self.__word = word
-        self.__passwords = []
+        self.__secrets = []
         self.__db[word] = {}
         self.__generate_word_forms(word)
         self.__replace_with_special_chars()
@@ -41,38 +45,38 @@ class SeclistGenerator:
         else:
             word_forms.append(word)
 
-        self.__passwords.extend(word_forms)
+        self.__secrets.extend(word_forms)
 
     def __replace_with_special_chars(self):
         words_with_special_chars = []
 
-        for password in self.__passwords:
-            if password.isdigit():
+        for secret in self.__secrets:
+            if secret.isdigit():
                 for digit in SPECIAL_CHARACTERS_REPLACEMENTS_FOR_DIGITS:
-                    if password.__contains__(digit):
+                    if secret.__contains__(digit):
                         for special_char in SPECIAL_CHARACTERS_REPLACEMENTS_FOR_DIGITS[digit]:
-                            output = password.replace(digit, special_char)
+                            output = secret.replace(digit, special_char)
                             words_with_special_chars.append(output)
 
             for digit in SPECIAL_CHARACTERS_REPLACEMENTS:
-                if password.__contains__(digit):
-                    output = password.replace(digit, SPECIAL_CHARACTERS_REPLACEMENTS[digit])
+                if secret.__contains__(digit):
+                    output = secret.replace(digit, SPECIAL_CHARACTERS_REPLACEMENTS[digit])
                     if not words_with_special_chars.__contains__(output):
                         words_with_special_chars.append(output)
 
         # self.__db[self.__word]['special_chars'] = words_with_special_chars
-        self.__passwords.extend(words_with_special_chars)
+        self.__secrets.extend(words_with_special_chars)
 
     def __append_connectors(self):
         words_with_connectors = []
-        for key in self.__passwords:
+        for key in self.__secrets:
             for char in SPECIAL_END_CHARACTERS:
                 output = key + char
                 words_with_connectors.append(output)
 
         # self.__db[self.__word]['connectors'] = words_with_connectors
         self.__db[self.__word]['connectors'] = words_with_connectors
-        self.__passwords.extend(words_with_connectors)
+        self.__secrets.extend(words_with_connectors)
 
     def __append_numbers(self):
         words_ending_with_numbers = []
@@ -81,10 +85,10 @@ class SeclistGenerator:
                 output = key + number
                 words_ending_with_numbers.append(output)
         # self.__db[self.__word]['numbers'] = words_ending_with_numbers
-        self.__passwords.extend(words_ending_with_numbers)
-        self.__db[self.__word]['passwords'] = self.__passwords
+        self.__secrets.extend(words_ending_with_numbers)
+        self.__db[self.__word]['secrets'] = self.__secrets
 
-    def __generate_two_words_passwords(self):
+    def __generate_two_words_secrets(self):
         all_two_words_password = []
         if len(self.__word_list) > 1:
             for i in range(0, len(self.__word_list)):
@@ -93,15 +97,15 @@ class SeclistGenerator:
                         index = self.__word_list[i]
                         next = self.__word_list[j]
                         index_connectors = self.__db[index]['connectors']
-                        next_passwords = self.__db[next]['passwords']
+                        next_passwords = self.__db[next]['secrets']
                         temp_passwords = [(first + second).rstrip() for first in index_connectors
                                           for second in next_passwords]
                         all_two_words_password.extend(temp_passwords)
 
         self.__db['two_words'] = all_two_words_password
-        self.__passwords.extend(all_two_words_password)
+        self.__secrets.extend(all_two_words_password)
 
-    def __generate_three_words_passwords(self):
+    def __generate_three_words_secrets(self):
         all_three_words_password = []
         if len(self.__word_list) > 2:
             temp_passwords = [password + connector for password in self.__db['two_words']
@@ -114,15 +118,14 @@ class SeclistGenerator:
 
             all_three_words_password.extend(temp_passwords)
         self.__db['three_words'] = all_three_words_password
-        self.__passwords.extend(all_three_words_password)
+        self.__secrets.extend(all_three_words_password)
 
     def __write_to_file(self, passwords):
         parth_directory = os.path.join(str(Path.home()), '.parth')
         if not os.path.exists(parth_directory):
             os.mkdir(parth_directory)
-        file_path = os.path.join(parth_directory, 'password-list.txt')
+        file_path = os.path.join(parth_directory, 'secret-list.txt')
         if os.path.exists(file_path):
-            print('Found an existing password list file. Removing it.')
             os.remove(file_path)
         with open(file_path, 'a') as file:
             for password in passwords:

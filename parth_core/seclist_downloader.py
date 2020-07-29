@@ -21,8 +21,6 @@ def __download_secret_list() -> str:
         res = requests.get(TOP_1000K_URL, verify=False)
         with open(file_path, 'wb') as f:
             f.write(res.content)
-    else:
-        print('SecList already exists.')
 
     return file_path
 

@@ -29,14 +29,26 @@ def arg_parser() -> argparse:
         default=8
     )
 
+    parser.add_argument(
+        "--file",
+        metavar='file',
+        help='write secrets to a file',
+        choices=['true', 'false'],
+        default='true'
+    )
+
+    parser.add_argument(
+        "--mode",
+        metavar='mode',
+        help='run the parth in crack or generate mode',
+        choices=['crack', 'generate'],
+        default='both'
+    )
+
     return parser.parse_args()
 
-
-if __name__ == '__main__':
-    args = arg_parser()
-
-    # Generate custom seclist
-    seclist_generator = SeclistGenerator(args.wordlist.split())
+def crack():
+    seclist_generator = SeclistGenerator(args.wordlist.split(), args.file)
     seclist = seclist_generator.generate()
 
     # Download seclist from Github
@@ -47,3 +59,19 @@ if __name__ == '__main__':
 
     # Decode JWT
     decode_jwt(args.token, seclist, int(args.thread))
+
+
+def generate():
+    print('Will generate JWTs')
+
+
+if __name__ == '__main__':
+    args = arg_parser()
+
+    if args.mode == 'crack':
+        crack()
+    elif args.mode == 'generate':
+        generate()
+    else:
+        crack()
+        generate()

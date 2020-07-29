@@ -1,6 +1,7 @@
 import sys
 import jwt
 import functools
+from tqdm import tqdm
 from time import time
 from multiprocessing import Pool as ThreadPool
 
@@ -30,7 +31,7 @@ def decode_jwt(token, secrets, threads=8):
     print('Decoding JWT on {} threads'.format(threads))
     pool = ThreadPool(threads)
     start = time()
-    pool.map(functools.partial(__decoder, token), secrets)
+    pool.map(functools.partial(__decoder, token), tqdm(secrets))
     pool.close()
     pool.join()
     print('Took %s seconds' % (time() - start))
