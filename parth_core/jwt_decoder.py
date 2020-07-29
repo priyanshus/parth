@@ -1,10 +1,19 @@
 import sys
 import jwt
+import json
 import functools
+import base64
 from tqdm import tqdm
 from time import time
 from multiprocessing import Pool as ThreadPool
+from parth_core.constants import JWT_HMAC_ALGOS
 
+
+def __is_hmac_algo(token):
+    encoded_header = token.split('.')[0]
+    decoded_header = base64.urlsafe_b64decode(encoded_header).decode()
+    alg = json.loads(decoded_header)['alg']
+    return alg, alg in JWT_HMAC_ALGOS
 
 def __decoder(token, secret):
     """This function checks if a secret can decrypt a JWT token.
@@ -28,6 +37,10 @@ def __decoder(token, secret):
 
 
 def decode_jwt(token, secrets, threads=8):
+    alg, is_hmac = __is_hmac_algo(token)
+    if not is_hmac:
+        print('Algorithm {} used by JWT is not supported by Parth'.format(alg))
+        sys.exit(1)
     print('Decoding JWT on {} threads'.format(threads))
     pool = ThreadPool(threads)
     start = time()

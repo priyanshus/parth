@@ -1,6 +1,7 @@
 import argparse
 
 from parth_core.jwt_decoder import decode_jwt
+from parth_core.jwt_generator import JWTGenerator
 from parth_core.seclist_downloader import get_1000k_seclist
 from parth_core.seclist_generator import SeclistGenerator
 
@@ -48,8 +49,11 @@ def arg_parser() -> argparse:
     return parser.parse_args()
 
 def crack():
-    seclist_generator = SeclistGenerator(args.wordlist.split(), args.file)
-    seclist = seclist_generator.generate()
+    seclist = []
+    if args.wordlist:
+        word_list = args.wordlist.split()
+        seclist_generator = SeclistGenerator(word_list, args.file)
+        seclist = seclist_generator.generate()
 
     # Download seclist from Github
     git_sec_list = get_1000k_seclist()
@@ -62,7 +66,8 @@ def crack():
 
 
 def generate():
-    print('Will generate JWTs')
+    generator = JWTGenerator(args.token)
+    generator.generate_jwt()
 
 
 if __name__ == '__main__':
