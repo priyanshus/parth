@@ -1,7 +1,7 @@
 ## parth
 Parth is a super-fast JWT (https://jwt.io/) hacking tool.
 
-<img src="https://github.com/priyanshus/parth/blob/master/media/screenshot.png" height="500">
+<img src="https://github.com/priyanshus/parth/blob/master/media/screenshot.png">
 
 **Features**
 - Parth can help you to discover the secret for JWT creation.
@@ -13,13 +13,10 @@ Parth is a super-fast JWT (https://jwt.io/) hacking tool.
 
 **How to run**
 
-`git clone https://github.com/priyanshus/parth.git` 
-
-`cd parth`
-
-`pip install -r requirements.txt`
-
-`python parth.py --token='jwtoken_to_be_hacked' --w='my custom word list' --thread=50`
+- `git clone https://github.com/priyanshus/parth.git` 
+- `cd parth`
+- `pip install -r requirements.txt`
+- `python parth.py --token='jwtoken_to_be_hacked' --w='my custom word list' --thread=50`
 
 Example:
 
