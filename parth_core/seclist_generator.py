@@ -108,12 +108,11 @@ class SeclistGenerator:
     def __generate_three_words_secrets(self):
         all_three_words_password = []
         if len(self.__word_list) > 2:
-            temp_passwords = [password + connector for password in self.__db['two_words']
-                              for connector in SPECIAL_END_CHARACTERS]
+            temp_passwords = [password for password in self.__db['two_words']]
             for temp_password in temp_passwords:
                 for input_key in self.__word_list:
                     for entry in self.__db[input_key]['connectors']:
-                        three_word_password = (temp_password + entry).rstrip()
+                        three_word_password = (entry+temp_password).rstrip()
                         all_three_words_password.append(three_word_password)
 
             all_three_words_password.extend(temp_passwords)
