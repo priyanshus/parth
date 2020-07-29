@@ -1,32 +1,18 @@
+from typing import List
 import argparse
 import os
 from pathlib import Path
-from typing import List
 
-SPECIAL_CHARACTERS_REPLACEMENTS = {
-    "a": "@",
-    "o": "0",
-    "s": "$",
-    "e": "3",
-    "i": "!"
-}
-
-SPECIAL_CHARACTERS_REPLACEMENTS_FOR_DIGITS = {
-    "0": ["@", "$"],
-    "1": ["I", "!"],
-    "3": "E"
-}
-
-SPECIAL_END_CHARACTERS = ['#', '$', '@', '!', '_', ' ']
-SPECIAL_NUMBERS = ['1', '123', '1234', '007']
+from parth_core.constants import (SPECIAL_CHARACTERS_REPLACEMENTS_FOR_DIGITS, SPECIAL_CHARACTERS_REPLACEMENTS, \
+                                  SPECIAL_END_CHARACTERS, SPECIAL_NUMBERS)
 
 
-class PasswordGenerator:
+class SeclistGenerator:
     """Generate a list of password based on wordlist provided by user"""
 
     def __init__(self, word_list):
         self.__word_list: List[str] = word_list
-        self.__password = []
+        self.__passwords = []
         self.__word = ''
         self.__db = dict()
 
@@ -36,12 +22,13 @@ class PasswordGenerator:
         self.__generate_two_words_passwords()
         self.__generate_three_words_passwords()
 
-        print('Generated {} passwords'.format(len(self.__password)))
-        return self.__password
+        print('Generated {} passwords'.format(len(self.__passwords)))
+        return self.__passwords
 
     def __generate_one_word_passwords(self, word):
         self.__word = word
-        self.__password = []
+        self.__passwords = []
+        self.__db[word] = {}
         self.__generate_word_forms(word)
         self.__replace_with_special_chars()
         self.__append_connectors()
@@ -54,39 +41,38 @@ class PasswordGenerator:
         else:
             word_forms.append(word)
 
-        self.__password.extend(word_forms)
-        self.__db[word] = {}
+        self.__passwords.extend(word_forms)
 
     def __replace_with_special_chars(self):
         words_with_special_chars = []
 
-        for key in self.__password:
-            if key.isdigit():
-                for char in SPECIAL_CHARACTERS_REPLACEMENTS_FOR_DIGITS:
-                    if key.__contains__(char):
-                        for item in SPECIAL_CHARACTERS_REPLACEMENTS_FOR_DIGITS[char]:
-                            output = key.replace(char, item)
+        for password in self.__passwords:
+            if password.isdigit():
+                for digit in SPECIAL_CHARACTERS_REPLACEMENTS_FOR_DIGITS:
+                    if password.__contains__(digit):
+                        for special_char in SPECIAL_CHARACTERS_REPLACEMENTS_FOR_DIGITS[digit]:
+                            output = password.replace(digit, special_char)
                             words_with_special_chars.append(output)
 
-            for char in SPECIAL_CHARACTERS_REPLACEMENTS:
-                if key.__contains__(char):
-                    output = key.replace(char, SPECIAL_CHARACTERS_REPLACEMENTS[char])
+            for digit in SPECIAL_CHARACTERS_REPLACEMENTS:
+                if password.__contains__(digit):
+                    output = password.replace(digit, SPECIAL_CHARACTERS_REPLACEMENTS[digit])
                     if not words_with_special_chars.__contains__(output):
                         words_with_special_chars.append(output)
 
         # self.__db[self.__word]['special_chars'] = words_with_special_chars
-        self.__password.extend(words_with_special_chars)
+        self.__passwords.extend(words_with_special_chars)
 
     def __append_connectors(self):
         words_with_connectors = []
-        for key in self.__password:
+        for key in self.__passwords:
             for char in SPECIAL_END_CHARACTERS:
                 output = key + char
                 words_with_connectors.append(output)
 
         # self.__db[self.__word]['connectors'] = words_with_connectors
         self.__db[self.__word]['connectors'] = words_with_connectors
-        self.__password.extend(words_with_connectors)
+        self.__passwords.extend(words_with_connectors)
 
     def __append_numbers(self):
         words_ending_with_numbers = []
@@ -95,8 +81,8 @@ class PasswordGenerator:
                 output = key + number
                 words_ending_with_numbers.append(output)
         # self.__db[self.__word]['numbers'] = words_ending_with_numbers
-        self.__password.extend(words_ending_with_numbers)
-        self.__db[self.__word]['passwords'] = self.__password
+        self.__passwords.extend(words_ending_with_numbers)
+        self.__db[self.__word]['passwords'] = self.__passwords
 
     def __generate_two_words_passwords(self):
         all_two_words_password = []
@@ -113,7 +99,7 @@ class PasswordGenerator:
                         all_two_words_password.extend(temp_passwords)
 
         self.__db['two_words'] = all_two_words_password
-        self.__password.extend(all_two_words_password)
+        self.__passwords.extend(all_two_words_password)
 
     def __generate_three_words_passwords(self):
         all_three_words_password = []
@@ -128,33 +114,18 @@ class PasswordGenerator:
 
             all_three_words_password.extend(temp_passwords)
         self.__db['three_words'] = all_three_words_password
-        self.__password.extend(all_three_words_password)
+        self.__passwords.extend(all_three_words_password)
 
+    def __write_to_file(self, passwords):
+        parth_directory = os.path.join(str(Path.home()), '.parth')
+        if not os.path.exists(parth_directory):
+            os.mkdir(parth_directory)
+        file_path = os.path.join(parth_directory, 'password-list.txt')
+        if os.path.exists(file_path):
+            print('Found an existing password list file. Removing it.')
+            os.remove(file_path)
+        with open(file_path, 'a') as file:
+            for password in passwords:
+                file.write(password + '\n')
 
-def main():
-    parser = argparse.ArgumentParser(description='generate a password list from permutation of probable words')
-    parser.add_argument("--w", metavar='words', type=str, help='words', required=True)
-    args = parser.parse_args()
-    keys = args.w.split()
-
-    generator = PasswordGenerator(keys)
-    passwords = generator.generate()
-
-    # Check if scanners directory exists and create a password list file
-    parth_directory = os.path.join(str(Path.home()), '.parth')
-    if not os.path.exists(parth_directory):
-        os.mkdir(parth_directory)
-    file_path = os.path.join(parth_directory, 'password-list.txt')
-    if os.path.exists(file_path):
-        print('Found an existing password list file. Removing it.')
-        os.remove(file_path)
-    with open(file_path, 'a') as file:
-        for password in passwords:
-            file.write(password + '\n')
-
-    print('Password file path: {}'.format(file_path))
-    return passwords
-
-
-if __name__ == '__main__':
-    main()
+        print('Seclist file path: {}'.format(file_path))
