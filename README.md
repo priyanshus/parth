@@ -1,7 +1,7 @@
 ## parth
 Parth is a super-fast JWT (https://jwt.io/) hacking tool.
 
-![Screenshot](https://github.com/priyanshus/parth/blob/master/media/screenshot.png)
+<img src="https://github.com/priyanshus/parth/blob/master/media/screenshot.png" height="500">
 
 **Features**
 - Parth can help you to discover the secret for JWT creation.
@@ -41,6 +41,3 @@ For more details: `python parth.py -h`
 - Be wise while using Parth to generate custom secrets. As Parth is capable of generating huge combinations based on input. For four string, it generates 8 million secrets. Having too many custom words can slow down your system.
 - Parth only support HMAC based JWT. 
 
-
-
- 
