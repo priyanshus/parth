@@ -6,7 +6,7 @@ Parth is a super-fast JWT (https://jwt.io/) hacking tool. Mainly developed for b
 **Features**
 - Parth can help you to discover the secret used for JWT creation.
 - Can generate secrets based on wordlist given.
-- Generates around 8 million secrets for 4 words (eg. my james jwt secret) given as input.
+- Generates around 8 million unique secrets for 4 words (eg. my james jwt secret) given as input.
 - Generates tempered `None` algorithms and other combinations to test jwt signatures.
 - Parth runs in multiprocessiong mode. For 8 million secrets to be tested against JWT, it hardly takes 60-70s.
 - In absence of custom secret, Parth is capable of brute-forcing JWT secret against 1 million top most common passwords.
