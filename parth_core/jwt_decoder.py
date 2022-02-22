@@ -11,6 +11,7 @@ from parth_core.constants import JWT_HMAC_ALGOS
 
 def __is_hmac_algo(token):
     encoded_header = token.split('.')[0]
+    encoded_header += "=" * ((4 - len(encoded_header) % 4) % 4)
     decoded_header = base64.urlsafe_b64decode(encoded_header).decode()
     alg = json.loads(decoded_header)['alg']
     return alg, alg in JWT_HMAC_ALGOS

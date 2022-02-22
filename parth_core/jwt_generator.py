@@ -28,6 +28,7 @@ class JWTGenerator:
         self.__signature = entities[2]
 
     def __manipulate_hmac_algos(self):
+        self.__header += "=" * ((4 - len(self.__header) % 4) % 4)
         decoded_header = base64.urlsafe_b64decode(self.__header).decode()
         header = json.loads(decoded_header)
         for algo in JWT_HMAC_NONE_ALGOS:
